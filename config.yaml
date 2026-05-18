@@ -1,0 +1,40 @@
+# =============================================================================
+# House of Hudson - Video Generator Config
+# =============================================================================
+# Edit this file to change what kind of videos get made.
+# You don't need to know code. Just change the text inside the quotes.
+# =============================================================================
+
+# What kind of channel? Pick ONE niche and stick with it for at least 30 videos.
+# Algorithms reward consistency. Examples below — uncomment one or write your own.
+niche: "fascinating historical facts most people never learned in school"
+# niche: "weird psychology facts about human behavior"
+# niche: "strange unsolved mysteries from around the world"
+# niche: "mind-blowing space facts and discoveries"
+# niche: "surprising science facts that sound fake but are true"
+# niche: "bizarre animal behaviors and abilities"
+
+# How many videos to generate each time you run the program.
+# Start with 3, work up to 5-10 once you see they're good.
+videos_per_run: 3
+
+# Video length in seconds. Shorts/TikTok cap at 60. 30-45 is the sweet spot.
+target_seconds: 35
+
+# Voice for the AI narration. Options: "en-us-female", "en-us-male",
+# "en-uk-female", "en-uk-male", "en-au-female", "en-au-male"
+# (Free Google TTS — quality is decent. You can swap for ElevenLabs later.)
+voice: "en-us-female"
+
+# Output format
+aspect_ratio: "9:16"   # 9:16 = TikTok/Shorts/Reels. Use "16:9" for regular YouTube.
+resolution: "1080x1920" # 1080x1920 for vertical, 1920x1080 for horizontal
+
+# Style of the script. "facts" = numbered list, "story" = narrative, "hook" = single fact w/ big buildup
+style: "facts"
+
+# Branding (optional). The channel name appears as a watermark on each video.
+channel_name: ""
+
+# Caching. If true, won't regenerate topics already used (saves API costs).
+avoid_repeats: true

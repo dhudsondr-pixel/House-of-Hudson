@@ -1,6 +1,27 @@
-# How to use the Etsy Printable Planner Factory
+# How to use the Etsy Factories
 
 This guide assumes you've never written code. Follow the steps in order.
+
+You have **two factories**:
+1. **Printable Planners** — daily / weekly / habit tracker / etc. ($4–10/listing)
+2. **Wedding Stationery** — save the date / invitation / RSVP / etc. ($6–14/listing)
+
+Pick one to start. Most sellers focus on one niche.
+
+---
+
+## Which factory should I start with?
+
+| | Planners | Wedding |
+|---|---|---|
+| Avg price per listing | $5 | $10 |
+| Niche saturation | High | High but higher prices absorb it |
+| Time to first sale | 2–4 weeks | 1–3 weeks (urgent buyers) |
+| Buyer urgency | Low (whenever) | High (wedding date) |
+| Repeat buyers | Some | Almost none (you sell to each couple once) |
+| **My recommendation** | Pick this if you want volume | Pick this if you want higher prices and don't mind starting fresh with each buyer |
+
+**You can run both.** The same shop can list both — just keep titles/tags distinct.
 
 ---
 
@@ -36,19 +57,32 @@ Python is the free software that runs the factory.
 3. Type `cd ` (with a space), then paste, then press Enter.
 4. Type `./run.sh` and press Enter.
 
-The first run installs two free libraries (`reportlab`, `Pillow`) — this
-takes about 30 seconds. After that, generation takes under a minute.
+The launcher will:
+1. Install three free libraries (`reportlab`, `Pillow`, `pypdfium2`) — first time only, ~30 seconds.
+2. **Ask which factory to run.** Type `1` for planners or `2` for wedding stationery.
 
-When it's done, you'll see a new folder called **`output/`** with 36
-subfolders, one per listing. Each subfolder contains:
+When it's done, you'll see one of:
+- `output/` (planners) — 36 subfolders, one per listing
+- `output-wedding/` (wedding) — 36 subfolders, one per listing
+
+Each subfolder contains:
 
 ```
-product.pdf          <- the file your customer downloads after buying
-image-1-hero.png     <- Etsy listing photo #1 (must be square, this is 2000x2000)
-image-2-preview.png  <- Etsy listing photo #2 (a sample page mockup)
-image-3-card.png     <- Etsy listing photo #3 (what's included)
-listing.txt          <- your title, tags, description, and suggested price
+product.pdf            <- the file your customer downloads after buying
+image-1-hero.png       <- Etsy listing photo #1 (2000x2000, the cover)
+image-2-card.png       <- Etsy listing photo #2 (a sample mockup)
+image-3-features.png   <- Etsy listing photo #3 (what's included)
+listing.txt            <- your title, tags, description, and suggested price
 ```
+
+### For wedding stationery: fillable PDFs
+
+Wedding card PDFs include **AcroForm text fields** so your buyer can type
+their names, date, and venue directly into the PDF using free Adobe
+Acrobat Reader. **Make sure your listing description tells buyers to
+"open in Adobe Acrobat Reader (free) and click the fields to edit."**
+The sample description in `listing.txt` already says this — just keep
+that line when you paste.
 
 ---
 

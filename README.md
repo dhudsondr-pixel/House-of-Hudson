@@ -1,3 +1,16 @@
+# House of Hudson
+
+Two projects live here:
+
+1. **`etsy_planner_factory/`** — a one-click generator that produces 36
+   ready-to-sell Etsy printable-planner listings (PDFs, mockup images, and
+   SEO-tuned listing copy). **Start here:** see [`SETUP.md`](./SETUP.md) for
+   the no-coding-knowledge guide.
+2. **`bambu_optimizer/`** — a separate CLI that recommends Bambu Lab 3D
+   printer settings. See below.
+
+---
+
 # Bambu Print Settings Optimizer
 
 A CLI that picks Bambu Studio settings for the **A1, H2D, H2C, P2S, and X2D**

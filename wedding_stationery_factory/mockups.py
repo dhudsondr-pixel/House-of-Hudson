@@ -110,16 +110,20 @@ def card_on_background(theme: WeddingTheme, card_pdf_path: str,
     bg_color = _rgb255(theme.accent)
     img = Image.new("RGB", (CANVAS, CANVAS), bg_color)
 
-    # Render the PDF's first page
+    # Render the PDF's first page. Close the document before returning so
+    # Windows releases the file handle and the caller can delete the preview.
     pdf = pdfium.PdfDocument(card_pdf_path)
-    page = pdf[0]
-    # scale so that the longer side is ~1400px
-    target = 1400
-    pdf_w, pdf_h = page.get_size()
-    scale = target / max(pdf_w, pdf_h)
-    bitmap = page.render(scale=scale)
-    card_img = bitmap.to_pil().convert("RGB")
-    cw, ch = card_img.size
+    try:
+        page = pdf[0]
+        # scale so that the longer side is ~1400px
+        target = 1400
+        pdf_w, pdf_h = page.get_size()
+        scale = target / max(pdf_w, pdf_h)
+        bitmap = page.render(scale=scale)
+        card_img = bitmap.to_pil().convert("RGB")
+        cw, ch = card_img.size
+    finally:
+        pdf.close()
 
     # Drop shadow
     shadow = Image.new("RGB", (cw + 40, ch + 40),

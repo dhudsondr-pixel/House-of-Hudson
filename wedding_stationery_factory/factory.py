@@ -39,8 +39,9 @@ def build_one(spec: ProductSpec, root: Path) -> Path:
 
     size = SIZES[card_def["size"]]
 
-    # 1. The customer-facing fillable PDF.
-    pdf_path = folder / "product.pdf"
+    # 1. The customer-facing fillable PDF. Files are prefixed with the SKU so
+    # they stay distinguishable when downloaded from several folders at once.
+    pdf_path = folder / f"{sku}__product.pdf"
     c = pdfcanvas.Canvas(str(pdf_path), pagesize=size.pts)
     c.setTitle(f"{theme.display_name} {card_def['display_name']}")
     card_def["build"](c, theme, mode="fillable")
@@ -55,11 +56,11 @@ def build_one(spec: ProductSpec, root: Path) -> Path:
 
     # 3. Mockups
     mockups.hero(theme, card_def["display_name"],
-                 str(folder / "image-1-hero.png"))
+                 str(folder / f"{sku}__image-1-hero.png"))
     mockups.card_on_background(theme, str(preview_path),
-                               str(folder / "image-2-card.png"))
+                               str(folder / f"{sku}__image-2-card.png"))
     mockups.feature_card(theme, card_def["display_name"],
-                         str(folder / "image-3-features.png"))
+                         str(folder / f"{sku}__image-3-features.png"))
 
     # Clean up the preview PDF — buyers should never see it.
     preview_path.unlink()
@@ -72,6 +73,6 @@ def build_one(spec: ProductSpec, root: Path) -> Path:
         theme=theme,
         sku=sku,
     )
-    (folder / "listing.txt").write_text(render_listing_text(listing))
+    (folder / f"{sku}__listing.txt").write_text(render_listing_text(listing))
 
     return folder

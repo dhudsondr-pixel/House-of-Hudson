@@ -28,10 +28,11 @@ class TestWeddingFactory(unittest.TestCase):
                             theme_slug="classic-calligraphy"),
                 Path(tmp),
             )
+            sku = folder.name
             for f in ("product.pdf", "image-1-hero.png",
                       "image-2-card.png", "image-3-features.png",
                       "listing.txt"):
-                p = folder / f
+                p = folder / f"{sku}__{f}"
                 self.assertTrue(p.exists(), f"missing {f}")
                 self.assertGreater(p.stat().st_size, 100)
 
@@ -45,7 +46,7 @@ class TestWeddingFactory(unittest.TestCase):
             # The internal preview PDF should be deleted; only product.pdf
             # remains for the customer.
             self.assertFalse((folder / "_preview.pdf").exists())
-            self.assertTrue((folder / "product.pdf").exists())
+            self.assertTrue((folder / f"{folder.name}__product.pdf").exists())
 
     def test_every_combination_renders(self):
         with tempfile.TemporaryDirectory() as tmp:

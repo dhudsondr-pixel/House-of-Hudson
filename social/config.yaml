@@ -1,0 +1,62 @@
+# =============================================================================
+# House of Hudson — Social Media Content Factory
+# =============================================================================
+# Edit this once for your brand. The same config drives every daily run.
+# =============================================================================
+
+# Your publishing brand name (what appears on posts).
+# Use the same name as the `author_name` in kdp/config.yaml so social and
+# books share an identity.
+brand_name: "Hudson House Press"
+
+# The niche your brand publishes for. Be specific.
+niche: "self-care and mindfulness journals for busy professionals"
+
+# Who you're talking to in one sentence.
+audience: "working professionals in their 30s-50s who feel stretched thin and want grounding rituals"
+
+# Your one-line brand tagline. Goes at the bottom of pins/posts.
+tagline: "Quiet moments, big shifts."
+
+# Where you want clicks to go. For book promotion, use your Amazon author page:
+# https://www.amazon.com/author/<your-handle> (you create this free on Amazon Author Central)
+# Or a Linktree/Beacons page with multiple book links.
+link_in_bio: "https://www.amazon.com/author/hudsonhouse"
+
+# Featured book / focus for posts. Two options:
+#
+# 1) Auto-pick the most recent KDP book from kdp/output/.
+# 2) Hard-code a focus paragraph here.
+#
+# Leave `featured_book_dir` blank to use option 2 (the paragraph below).
+featured_book_dir: ""    # e.g. "kdp/output/2026-05-25/prompt_journal__the-quiet-mind"
+featured_book_context: |
+  A new prompt journal designed for professionals who feel like the day rushes
+  past them. 365 single-page prompts to slow down for 90 seconds at a time.
+  Soft cover, fits in a bag, no tracking, no streaks — just one quiet question
+  per day.
+
+# Which platforms to generate content for. Comment out any you don't use yet.
+platforms:
+  - pinterest
+  - instagram
+  - twitter
+  - tiktok
+
+# Per-run quantities. Pinterest favors VOLUME (5-15 pins/day is normal for
+# growing accounts). Instagram favors quality (1 post/day is plenty).
+quantities:
+  pinterest_pins: 8
+  instagram_quotes: 1
+  instagram_carousels: 1
+  twitter_threads: 1
+  tiktok_scripts: 1
+
+# Visual style. Restrict to palettes that fit your niche (optional).
+# Available: calm, sage, rose, midnight, ink, ocean, terracotta, linen
+# Leave empty to let the tool pick deterministically.
+allowed_palettes:
+  - calm
+  - sage
+  - linen
+  - rose

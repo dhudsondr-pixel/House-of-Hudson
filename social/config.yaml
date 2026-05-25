@@ -1,40 +1,41 @@
 # =============================================================================
-# House of Hudson — Social Media Content Factory
+# House of Hudson — Social Media Content Factory (3D printing brand)
 # =============================================================================
 # Edit this once for your brand. The same config drives every daily run.
 # =============================================================================
 
-# Your publishing brand name (what appears on posts).
-# Use the same name as the `author_name` in kdp/config.yaml so social and
-# books share an identity.
-brand_name: "Hudson House Press"
+# Your brand name (appears as the brand mark on every post).
+brand_name: "House of Hudson"
 
-# The niche your brand publishes for. Be specific.
-niche: "self-care and mindfulness journals for busy professionals"
+# What you do, in specific 3D-printing language.
+niche: "original STL designs and custom 3D printing for makers and gift-givers"
 
-# Who you're talking to in one sentence.
-audience: "working professionals in their 30s-50s who feel stretched thin and want grounding rituals"
+# Who you're talking to. Be specific.
+audience: "DIY makers and hobbyist printers (Bambu / Prusa / Ender owners), plus non-printer gift-buyers searching Etsy for printed items"
 
-# Your one-line brand tagline. Goes at the bottom of pins/posts.
-tagline: "Quiet moments, big shifts."
+# Your tagline (small text on each post).
+tagline: "Printed in-house. Designed to keep."
 
-# Where you want clicks to go. For book promotion, use your Amazon author page:
-# https://www.amazon.com/author/<your-handle> (you create this free on Amazon Author Central)
-# Or a Linktree/Beacons page with multiple book links.
-link_in_bio: "https://www.amazon.com/author/hudsonhouse"
+# Where you want clicks to go. Some good options for a 3D printing brand:
+#   - Your Cults3D profile:     https://cults3d.com/en/users/<your-handle>
+#   - Your MakerWorld profile:  https://makerworld.com/en/@<your-handle>
+#   - Your Printables profile:  https://www.printables.com/@<your-handle>
+#   - Your Etsy shop:           https://www.etsy.com/shop/<your-shop>
+#   - A Linktree with all of the above
+link_in_bio: "https://linktr.ee/houseofhudson"
 
-# Featured book / focus for posts. Two options:
+# Featured design / focus for today's posts. Two ways to set this:
 #
-# 1) Auto-pick the most recent KDP book from kdp/output/.
-# 2) Hard-code a focus paragraph here.
-#
-# Leave `featured_book_dir` blank to use option 2 (the paragraph below).
-featured_book_dir: ""    # e.g. "kdp/output/2026-05-25/prompt_journal__the-quiet-mind"
-featured_book_context: |
-  A new prompt journal designed for professionals who feel like the day rushes
-  past them. 365 single-page prompts to slow down for 90 seconds at a time.
-  Soft cover, fits in a bag, no tracking, no streaks — just one quiet question
-  per day.
+# 1) Auto-pick from a recent STL listing folder (set featured_design_dir to a
+#    path like "stl/output/2026-05-25/desktop_organizer").
+# 2) Leave featured_design_dir empty and fill featured_design_context below
+#    with a description of what you want today's posts to highlight.
+featured_design_dir: ""
+featured_design_context: |
+  A new modular cable management tray system. Snap-together segments that
+  route under-desk cables along an aluminium extrusion. Designed for standing
+  desks. Printed in PETG for heat resistance. Free STL on MakerWorld,
+  paid version with extra mounts on Cults3D.
 
 # Which platforms to generate content for. Comment out any you don't use yet.
 platforms:
@@ -43,8 +44,8 @@ platforms:
   - twitter
   - tiktok
 
-# Per-run quantities. Pinterest favors VOLUME (5-15 pins/day is normal for
-# growing accounts). Instagram favors quality (1 post/day is plenty).
+# Per-run quantities. Pinterest favors volume (5-15 pins/day). Instagram favors
+# quality (1-2 posts/day). TikTok: 1/day is plenty for a brand account.
 quantities:
   pinterest_pins: 8
   instagram_quotes: 1
@@ -52,11 +53,11 @@ quantities:
   twitter_threads: 1
   tiktok_scripts: 1
 
-# Visual style. Restrict to palettes that fit your niche (optional).
-# Available: calm, sage, rose, midnight, ink, ocean, terracotta, linen
-# Leave empty to let the tool pick deterministically.
+# Visual style for generated graphics. Pick palettes that match your brand.
+# Available: industrial, blueprint, midnight, neon, molten, lab, graphite, circuit
+# Leave empty to let the tool rotate through all of them.
 allowed_palettes:
-  - calm
-  - sage
-  - linen
-  - rose
+  - industrial
+  - blueprint
+  - graphite
+  - lab

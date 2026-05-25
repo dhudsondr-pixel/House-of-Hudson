@@ -7,12 +7,17 @@
 
 # What kind of channel? Pick ONE niche and stick with it for at least 30 videos.
 # Algorithms reward consistency. Examples below — uncomment one or write your own.
-niche: "fascinating historical facts most people never learned in school"
-# niche: "weird psychology facts about human behavior"
-# niche: "strange unsolved mysteries from around the world"
+#
+# 3D-printing-related niches (likely the best fit for House of Hudson):
+niche: "useful 3D printed solutions for everyday problems — one print at a time"
+# niche: "3D printing failures and the fixes that worked"
+# niche: "satisfying 3D print timelapses with the story behind each design"
+# niche: "5-minute prints that solve real problems"
+# niche: "weird and useful 3D printed items most people don't know exist"
+#
+# Generic faceless-channel niches (if you also want to run a side channel):
+# niche: "fascinating historical facts most people never learned in school"
 # niche: "mind-blowing space facts and discoveries"
-# niche: "surprising science facts that sound fake but are true"
-# niche: "bizarre animal behaviors and abilities"
 
 # How many videos to generate each time you run the program.
 # Start with 3, work up to 5-10 once you see they're good.
@@ -34,7 +39,7 @@ resolution: "1080x1920" # 1080x1920 for vertical, 1920x1080 for horizontal
 style: "facts"
 
 # Branding (optional). The channel name appears as a watermark on each video.
-channel_name: ""
+channel_name: "House of Hudson"
 
 # Caching. If true, won't regenerate topics already used (saves API costs).
 avoid_repeats: true

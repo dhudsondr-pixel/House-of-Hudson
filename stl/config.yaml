@@ -1,0 +1,48 @@
+# =============================================================================
+# House of Hudson — STL Listing & Quote Pipeline
+# =============================================================================
+# Drop an STL into  stl/input/<design-name>/  with an optional description.txt
+# next to it, then run the tool. Each design produces a folder under
+# stl/output/<date>/<design-name>/ with renders, listings, print settings,
+# and (optionally) a customer quote PDF.
+# =============================================================================
+
+# Your business identity (used in quote PDFs and footers).
+business_name: "House of Hudson"
+business_tagline: "Custom 3D prints & original designs"
+business_contact: "hudson.dr@gmail.com"
+currency_symbol: "$"
+
+# Default print material assumption. Used for weight + time estimates.
+# Options: PLA, PETG, ABS, TPU, ASA, Nylon, Resin
+default_material: "PLA"
+default_infill_pct: 20
+
+# Render style for the marketing previews. Pick what fits your brand.
+# Options: studio_white, midnight, blueprint, industrial, soft_pastel, neon
+render_style: "studio_white"
+
+# Views to render per STL. Iso is the hero shot; front+top help on listing pages.
+render_views: ["iso", "front", "top"]
+
+# What to generate. Comment out anything you don't need.
+generate:
+  - listings           # cross-platform listing copy (Cults, MakerWorld, Printables, Thingiverse, Etsy, Patreon)
+  - renders            # PNG preview images
+  - print_settings     # recommended layer height, infill, supports
+  - stl_pricing        # suggested STL file prices per platform
+  - print_quote        # quote PDF for the print-and-ship version of this design
+
+# Do you offer print-and-ship service for the STLs you sell? Affects Etsy copy.
+offers_print_service: true
+
+# License you grant for STL downloads.
+license_note: "Personal use only — please do not resell or redistribute the file"
+
+# Pricing config for the print-and-ship quote.
+pricing:
+  filament_cost_per_kg: 25.00     # what a 1kg spool costs you
+  machine_rate_per_hour: 0.50     # electricity + wear + amortization
+  labor_rate_per_hour: 25.00      # what your time is worth
+  setup_minutes: 10               # slicing + bed prep + post-processing per job
+  markup_pct: 40                  # margin on top of cost

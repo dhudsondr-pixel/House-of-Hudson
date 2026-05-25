@@ -39,13 +39,20 @@ def _check_env() -> None:
         sys.exit(1)
 
 
-def _resolve_book_context(config: dict) -> str:
-    book_dir = (config.get("featured_book_dir") or "").strip()
-    if book_dir:
-        meta_path = REPO_ROOT / book_dir / "metadata.txt"
-        if meta_path.exists():
-            return meta_path.read_text()
-    return config.get("featured_book_context", "").strip()
+def _resolve_design_context(config: dict) -> str:
+    """Resolve today's focus. Order: explicit design folder → context string."""
+    design_dir = (config.get("featured_design_dir") or "").strip()
+    if design_dir:
+        d = REPO_ROOT / design_dir
+        # Combine the analysis + the cults3d listing description as context.
+        pieces = []
+        for fname in ("analysis.txt", "listing_cults3d.txt", "listing_etsy.txt"):
+            p = d / fname
+            if p.exists():
+                pieces.append(p.read_text())
+        if pieces:
+            return "\n\n".join(pieces)
+    return config.get("featured_design_context", "").strip()
 
 
 def main() -> int:
@@ -63,9 +70,9 @@ def main() -> int:
     qty = config.get("quantities", {})
     palettes = config.get("allowed_palettes") or None
 
-    book_context = _resolve_book_context(config)
-    if not book_context:
-        book_context = f"(no specific book focus — promote the brand and niche generally)"
+    design_context = _resolve_design_context(config)
+    if not design_context:
+        design_context = "(no specific design focus today — promote the brand and niche generally)"
 
     today = dt.date.today().isoformat()
     out_dir = SOCIAL_ROOT / "output" / today
@@ -85,7 +92,7 @@ def main() -> int:
             niche=niche,
             audience=audience,
             tagline=tagline,
-            book_context=book_context,
+            design_context=design_context,
             n_pinterest=qty.get("pinterest_pins", 5) if "pinterest" in platforms else 0,
             n_ig_quotes=qty.get("instagram_quotes", 1) if "instagram" in platforms else 0,
             n_ig_carousels=qty.get("instagram_carousels", 1) if "instagram" in platforms else 0,

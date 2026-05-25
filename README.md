@@ -1,159 +1,146 @@
-# House of Hudson — Faceless Short-Form Video Generator
+# House of Hudson
 
-A program that writes, voices, and assembles short-form videos (YouTube Shorts / TikTok / Reels) for you. You run it, you upload the MP4s, you keep doing that, and — *with consistency and luck* — a channel grows.
+Tooling for the House of Hudson 3D printing business: STL listing automation, customer quoting, social media content production, and faceless video generation.
 
----
-
-## The honest expectations
-
-**No program can guarantee $1000/month. Anyone who tells you otherwise is lying.** What this program *does* is remove every part of video creation except the click-to-upload step. The actual income depends on:
-
-- **Consistency** — most successful faceless channels post 1+ video per day for 60-90 days before anything takes off.
-- **Niche & hook quality** — the niche in `config.yaml` matters enormously. Pick something with proven demand (history, psychology, space, weird animals) over something obscure.
-- **Luck** — short-form algorithms are stochastic. A channel might do nothing for 40 videos and then one hits 2M views.
-- **Monetization path** — YouTube Shorts pays via the YouTube Partner Program once you hit 1k subs + 10M Shorts views in 90 days. TikTok pays via the Creator Rewards Program at 10k followers. Until then, income comes from affiliate links in your bio, course/Gumroad funnels, or sponsorships.
-
-**Realistic 90-day outcomes for someone posting daily:** 70% earn $0, 20% earn $50-500/mo, 10% earn $1k+/mo. This tool gives you the cheapest possible shot at being in the last two buckets.
+This repo contains four tools that share one Python environment and one `.env`. Each is self-contained and has its own README with detailed instructions.
 
 ---
 
-## What it does
+## What's in here
 
-Each time you run it, the program:
+| Tool | Folder | What it does |
+|---|---|---|
+| **STL pipeline** | `stl/` | Drop an STL file in → out comes renders, cross-platform listing copy (Cults3D, MakerWorld, Printables, Thingiverse, Etsy, Patreon), recommended print settings, suggested pricing, and (optionally) a customer-facing quote PDF for print-and-ship orders. |
+| **Social media factory** | `social/` | One run generates Pinterest pins, Instagram quotes + carousels, Twitter/X threads, and TikTok scripts that promote a specific STL listing or your brand. All ready to batch-schedule via Pinterest Business / Meta Business Suite. |
+| **Video generator** | `/` (root) | Auto-produces vertical MP4s for YouTube Shorts / TikTok / Reels. AI script + voiceover + Pexels stock footage + on-screen captions. Configure niche in `config.yaml`. |
+| **Setup** | `setup.sh` / `setup.bat` | One-time installer. Creates a venv, installs all Python deps, installs ffmpeg, creates a `.env` from the template. Run this once before anything else. |
 
-1. Asks Claude to brainstorm fresh topic ideas in your chosen niche.
-2. Writes a short, hook-first script for each topic.
-3. Generates AI voiceover (free Google TTS).
-4. Pulls matching stock video clips from Pexels (free API).
-5. Assembles a vertical MP4 with captions burned in.
-6. Saves the MP4s plus a `captions.txt` file with ready-to-paste descriptions/hashtags.
+The four tools work together but each is independently runnable. The typical flywheel:
 
-You upload. That's it.
+1. Design a new STL.
+2. Run `stl/run.py` → get listings + renders + suggested price.
+3. Upload the STL + listings to Cults3D / MakerWorld / Printables / Etsy.
+4. Point `social/config.yaml`'s `featured_design_dir:` at the STL's output folder.
+5. Run `social/run.py` → get a week of pins/posts/scripts promoting that design.
+6. Schedule everything via free platform schedulers.
+7. (Optional) Run the video generator with a 3D-printing niche for an evergreen YouTube Shorts / TikTok channel.
 
 ---
 
-## One-time setup (~10 minutes)
+## One-time setup
 
-### Step 1: Install prerequisites
+### 1. Install prerequisites
 
 You need **Python 3** and **ffmpeg** on your computer.
 
 - **Mac:** install [Homebrew](https://brew.sh), then run `brew install python ffmpeg`
-- **Windows:** install Python from [python.org](https://www.python.org/downloads/) (tick "Add Python to PATH" during install), then install ffmpeg via `winget install ffmpeg` in PowerShell
+- **Windows:** install Python from [python.org](https://www.python.org/downloads/) (tick "Add Python to PATH"), then install ffmpeg via `winget install ffmpeg` in PowerShell
 - **Linux:** `sudo apt-get install python3 python3-venv python3-pip ffmpeg`
 
-### Step 2: Get your API keys
+### 2. Run the setup script
 
-You need two — one paid (cheap), one free.
+```bash
+bash setup.sh        # Mac/Linux
+setup.bat            # Windows
+```
 
-| Service | Cost | Sign-up link |
-|---|---|---|
-| **Anthropic (Claude)** | ~$0.01-$0.05 per video generated. Add $5 of credit and it'll last weeks. | https://console.anthropic.com/ |
-| **Pexels** | 100% free, forever. Just sign up. | https://www.pexels.com/api/ |
+It installs all Python dependencies into a `.venv/` folder and copies `.env.example` to `.env`.
 
-For each, sign up, find the "API Keys" page, and copy your key somewhere safe.
-
-### Step 3: Run setup
-
-In a terminal, inside this folder:
-
-- **Mac / Linux:** `bash setup.sh`
-- **Windows:** double-click `setup.bat`
-
-The script will install everything and create a `.env` file.
-
-### Step 4: Paste your API keys
-
-Open the file called `.env` in any text editor (Notepad works). You'll see:
+### 3. Paste your API keys into `.env`
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-PEXELS_API_KEY=
+PEXELS_API_KEY=...
 ```
 
-Replace the placeholder with your real Anthropic key, and paste your Pexels key after the `=`. Save the file.
-
-### Step 5 (optional): Pick your niche
-
-Open `config.yaml`. Change the `niche:` line to whatever channel you want to make. The file has several examples commented out — pick one or write your own.
-
-**Strong starter niches** (proven to work for faceless channels):
-- "fascinating historical facts most people never learned in school"
-- "weird psychology facts about human behavior"
-- "strange unsolved mysteries from around the world"
-- "mind-blowing space facts and discoveries"
-
-**Don't:** keep changing your niche. Pick one and post 30 videos in it before you reconsider.
+- **Anthropic API key**: from https://console.anthropic.com/. Buy $10 in credit — that's enough for ~50 STL listings + ~50 social runs + ~30 videos.
+- **Pexels API key**: 100% free, from https://www.pexels.com/api/. Only used by the video generator for stock footage.
 
 ---
 
-## Daily use
+## Daily / weekly use
 
-Once setup is done, every time you want new videos:
+Pick the rhythm that fits you. A reasonable cadence:
 
-- **Mac / Linux:** `bash run.sh`
-- **Windows:** double-click `run.bat`
+| When | What to run | Time |
+|---|---|---|
+| **Per new STL** | `bash stl/run_stl.sh` | 2-3 min compute + 15 min to upload listings to all platforms |
+| **Daily (or batched 2x/week)** | `bash social/run_social.sh` | 3 min compute + 30 min to schedule pins/posts |
+| **Daily (optional)** | `bash run.sh` (video generator) | 5-8 min compute + 1 min to upload each MP4 |
 
-That's the one command. It takes 3-8 minutes to make 3 videos. They land in `output/<today's-date>/`, along with a `captions.txt` containing the description and hashtags to paste when you upload.
+If you have 30-60 min/day, the highest-leverage allocation is:
 
-### Recommended workflow
-
-1. Run the program in the morning.
-2. Open the output folder.
-3. Watch each MP4 (10 seconds each — skip any that look wrong).
-4. Upload to **one platform consistently** (don't spread thin — pick YouTube Shorts OR TikTok and focus). Paste the description from `captions.txt`.
-5. Post at the **same time every day**. Algorithms reward this.
-6. Don't read your stats for the first 30 days. Just post.
+- 10-15 min on `stl/` when you have a new design ready
+- 30 min on `social/` (running it + scheduling its output to Pinterest in particular)
+- Whatever's left on video generation OR responding to custom-order DMs from social
 
 ---
 
-## Tuning for results
+## Honest expectations
 
-After 10-20 videos, look at which got the most views. In `config.yaml`:
+I want to be clear about what these tools can and can't do.
 
-- If the videos look choppy → lower `videos_per_run` to 1, increase `target_seconds` for richer scripts.
-- If the voice sounds wrong → try a different `voice` setting.
-- If you want a different visual style → change `niche` to something more visually concrete ("deep sea creatures" gives better stock footage than "philosophical paradoxes").
+**What they can do:**
+- Remove 30-60 min of repetitive listing/marketing work per design.
+- Produce content that is on par with most mid-tier listings already on Cults3D / MakerWorld / Etsy.
+- Generate enough social content to maintain a daily presence on 4 platforms.
+- Help you batch-publish to platforms you'd otherwise skip (most makers only upload to 1-2 platforms because the listing work is tedious).
+
+**What they can't do:**
+- Guarantee any specific revenue.
+- Replace good design — if the STL doesn't solve a real problem or look striking, no listing copy will fix that.
+- Auto-engage on social media (banned by every platform; gets accounts suspended).
+- Upload directly to Cults3D / MakerWorld / etc — these all want a human in the loop for uploads.
+
+**Realistic 12-month outcomes** assuming daily use, 1-2 new STLs per week, and consistent social scheduling:
+
+- **Cults3D + Etsy STL sales**: $100-2,000/mo (high variance by niche)
+- **MakerWorld + Printables engagement points**: $50-1,000/mo equivalent (Bambu rewards program)
+- **Print-on-demand custom orders from social/DM leads**: 2-15 orders/mo at your usual job rates
+- **Total**: roughly $500-5,000/mo additional revenue from automated marketing on top of your existing business
+
+The breakouts (the 10% who exceed $10k/mo) are typically the ones who (a) found a specific high-demand niche, (b) iterated based on which designs sold, and (c) reinvested into better tooling or paid ads on winners.
 
 ---
 
-## Going from $0 → revenue
+## File tree
 
-This tool produces the supply. Demand (views) and monetization are still on you. The lowest-friction monetization paths, in order of how soon they pay:
-
-1. **Affiliate links in bio** — pick one Amazon/affiliate product relevant to your niche, drop the link in your YouTube / TikTok bio from day one. ~$0-100/mo with small channels.
-2. **YouTube Partner Program (Shorts)** — needs 1k subs + 10M Shorts views in 90 days. Pays roughly $0.05/1k views on Shorts.
-3. **Gumroad/course funnel** — once you have 5k+ followers, sell a $7 ebook/template tied to your niche. This is where most $1k+/mo creators get there.
-4. **Sponsorships** — at 50k+ followers.
-
-The tool does steps 1-N of content creation. You do the upload + the bio link + the consistency.
-
----
-
-## What this tool is NOT
-
-- ❌ A get-rich scheme. If you post 5 videos and quit, you'll earn nothing. Same as any business.
-- ❌ A way to upload directly to TikTok/YouTube from code. Both platforms ban automation. You upload manually — this is a feature, not a bug. It keeps your account safe.
-- ❌ Magic. The script-writing quality is good but not perfect. Watch each video before posting.
-
-## What you can change later
-
-- Swap `gTTS` for **ElevenLabs** (better voice, ~$5/mo) by editing `src/voice.py`.
-- Swap stock footage for **AI-generated images** (Stable Diffusion / Replicate) by editing `src/footage.py`.
-- Add a **scheduler** (cron / Task Scheduler) so videos generate every morning without you opening anything.
-
-If you don't want to touch the code, the defaults are fine. Just run, upload, repeat.
+```
+House-of-Hudson/
+├── README.md                     # this file
+├── setup.sh / setup.bat          # one-time installer
+├── .env.example                  # template; copy to .env and fill in keys
+├── requirements.txt              # Python deps for all tools
+├── config.yaml                   # video generator config
+├── run.py / run.sh / run.bat     # video generator entry points
+├── src/                          # video generator source
+│
+├── stl/
+│   ├── README.md                 # STL pipeline docs
+│   ├── config.yaml               # STL pipeline config
+│   ├── run.py / run_stl.sh/.bat  # STL pipeline entry points
+│   ├── input/                    # drop your STL folders here
+│   ├── output/                   # generated listings land here (gitignored)
+│   └── src/                      # STL pipeline source
+│
+└── social/
+    ├── README.md                 # social factory docs
+    ├── config.yaml               # social factory config
+    ├── run.py / run_social.sh/.bat
+    ├── output/                   # generated posts land here (gitignored)
+    └── src/                      # social factory source
+```
 
 ---
 
 ## Troubleshooting
 
+Each tool's README has a Troubleshooting section. Common issues across all three:
+
 | Problem | Fix |
 |---|---|
-| `ffmpeg not found` | See Step 1 above. The setup script will install it on Mac/Linux. |
-| `ANTHROPIC_API_KEY not set` | You didn't fill in `.env`. Open it and paste your keys. |
-| Topic brainstorm fails | Usually means your Anthropic account has no credit. Add $5 at https://console.anthropic.com/ |
-| Stock clips all look weird | Your niche is too abstract. Change `niche:` to something more concrete and visual. |
-| Videos sound robotic | gTTS is free but basic. Upgrade to ElevenLabs (see "What you can change"). |
+| `ANTHROPIC_API_KEY not set` | You haven't pasted your key into `.env` yet. |
+| `ffmpeg not found` | Run setup.sh or install ffmpeg manually (see step 1 above). |
+| Topic / listing / plan generation fails | Anthropic account is out of credit. Top up at https://console.anthropic.com/billing. |
 
-If you get stuck, paste the error message into the chat with me and I'll fix it.
+If anything errors, paste the message and I'll fix it.

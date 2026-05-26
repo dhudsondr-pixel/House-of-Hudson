@@ -58,8 +58,27 @@ def generate_metadata(
     angle: str,
     page_count: int,
     trim: str,
+    template_contents: str | None = None,
 ) -> BookMetadata:
+    """Generate listing metadata.
+
+    `template_contents`: optional verbatim description of what's actually inside
+    the printed interior. When provided, the generated description is constrained
+    to ONLY promise features that the template actually delivers (no overselling).
+    """
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+    template_block = ""
+    if template_contents:
+        template_block = f"""
+
+CRITICAL — the interior of this book contains EXACTLY the following and nothing
+more. The description must accurately describe these contents. Do NOT invent
+features that are not listed here. Do NOT promise any clinical recommendations,
+food databases, treatment plans, or anything not in this list.
+
+{template_contents}
+"""
 
     user_prompt = f"""Generate KDP listing metadata for this book.
 
@@ -69,7 +88,7 @@ Target audience: {audience}
 Differentiation angle: {angle}
 Page count: {page_count}
 Trim size: {trim} inches
-
+{template_block}
 Write the listing now. JSON only."""
 
     resp = client.messages.create(

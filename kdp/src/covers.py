@@ -45,27 +45,45 @@ def _deterministic_choice(seed: str, options: list):
 
 
 def _fit_text(c: canvas.Canvas, text: str, font: str, max_size: int, min_size: int,
-              max_width_pt: float) -> Tuple[List[str], int, float]:
+              max_width_pt: float, max_lines: int = 4) -> Tuple[List[str], int, float]:
     """Find the largest font size at which the text fits, possibly across multiple lines.
 
+    Constraints: lines must fit horizontally AND there must be no more than
+    `max_lines` lines at the chosen size. If text simply won't fit at min_size,
+    it's truncated word-by-word until it does (with a trailing "...").
+
     Returns (wrapped_lines, font_size, total_height_pt).
-    Total height includes line gaps (1.15x leading).
     """
+    text = text.strip()
+
     for size in range(max_size, min_size - 1, -2):
         avg_char = c.stringWidth("M", font, size) or size * 0.55
         approx_cols = max(8, int(max_width_pt / avg_char))
-        wrapped = textwrap.fill(text, width=approx_cols).splitlines()
+        wrapped = textwrap.fill(text, width=approx_cols, break_long_words=False).splitlines()
         widest = max((c.stringWidth(line, font, size) for line in wrapped), default=0)
-        if widest <= max_width_pt:
+        if widest <= max_width_pt and len(wrapped) <= max_lines:
             leading = size * 1.15
             total_h = leading * (len(wrapped) - 1) + size
             return wrapped, size, total_h
-    # Couldn't fit at min size; return min anyway with whatever wrap.
+
+    # Couldn't fit even at min_size — truncate the text until it fits.
     avg_char = c.stringWidth("M", font, min_size) or min_size * 0.55
     approx_cols = max(6, int(max_width_pt / avg_char))
-    wrapped = textwrap.fill(text, width=approx_cols).splitlines()
+    words = text.split()
+    while words:
+        candidate = " ".join(words)
+        if len(words) < len(text.split()):
+            candidate += "..."
+        wrapped = textwrap.fill(candidate, width=approx_cols, break_long_words=False).splitlines()
+        widest = max((c.stringWidth(line, font, min_size) for line in wrapped), default=0)
+        if widest <= max_width_pt and len(wrapped) <= max_lines:
+            leading = min_size * 1.15
+            return wrapped, min_size, leading * (len(wrapped) - 1) + min_size
+        words = words[:-1]
+
+    # Truly degenerate (single huge word) — return as-is at min size.
     leading = min_size * 1.15
-    return wrapped, min_size, leading * (len(wrapped) - 1) + min_size
+    return [text], min_size, min_size
 
 
 def _draw_text_block(c: canvas.Canvas, lines: List[str], font: str, size: int,
@@ -137,7 +155,8 @@ def build_cover(
     # 1. Title — sits in upper-middle of front cover. Top edge at 88% of trim height.
     title_top = front_bottom_safe + (front_top_safe - front_bottom_safe) * 0.85
     title_lines, title_size, title_h = _fit_text(c, title.upper(), title_font,
-                                                  max_size=64, min_size=28, max_width_pt=front_text_w)
+                                                  max_size=58, min_size=22, max_width_pt=front_text_w,
+                                                  max_lines=4)
     title_bottom = _draw_text_block(c, title_lines, title_font, title_size, t_col, front_cx, title_top)
 
     # 2. Accent rule below title.

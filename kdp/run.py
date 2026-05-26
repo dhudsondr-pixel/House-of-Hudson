@@ -27,6 +27,8 @@ sys.path.insert(0, str(KDP_ROOT))
 from src import wordsearch as ws_gen
 from src.covers import build_cover
 from src.interiors import (
+    DIABETES_LOG_CONTENTS,
+    build_diabetes_log_interior,
     build_lined_interior,
     build_prompt_journal_interior,
     build_tracker_interior,
@@ -173,6 +175,13 @@ def _generate_one_book(
     author = config["author_name"]
     list_price = float(config["list_price"])
 
+    # Some book types have fixed clinical-grade layouts. Pass the verbatim
+    # template description so the metadata writer doesn't oversell.
+    TEMPLATE_CONTENTS = {
+        "diabetes_log": DIABETES_LOG_CONTENTS,
+    }
+    template_contents = TEMPLATE_CONTENTS.get(book_type)
+
     print(f"  [meta] Generating listing metadata...")
     meta = generate_metadata(
         book_type=book_type,
@@ -181,6 +190,7 @@ def _generate_one_book(
         angle=niche_obj["angle"],
         page_count=page_count,
         trim=trim,
+        template_contents=template_contents,
     )
     print(f"         Title: {meta.title}")
 
@@ -218,6 +228,15 @@ def _generate_one_book(
         )
     elif book_type == "tracker":
         build_tracker_interior(
+            out_path=interior_path,
+            trim=trim,
+            page_count=page_count,
+            title=meta.title,
+            subtitle=meta.subtitle,
+            author=author,
+        )
+    elif book_type == "diabetes_log":
+        build_diabetes_log_interior(
             out_path=interior_path,
             trim=trim,
             page_count=page_count,

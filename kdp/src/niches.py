@@ -33,6 +33,15 @@ def brainstorm(theme: str, book_type: str, count: int, avoid: List[str]) -> List
         "prompt_journal": "A prompt-driven journal with daily reflection prompts.",
         "tracker": "A habit/goal tracker with monthly grids and weekly review pages.",
         "wordsearch": "A themed word search puzzle book for a specific interest group.",
+        "diabetes_log": (
+            "A 90-day clinical daily log book for someone managing type 2 diabetes. "
+            "One page per day: glucose readings (pre/post meal), carbs by meal, "
+            "medications + insulin, activity, sleep, mood, notes. Plus baseline + "
+            "goals + care-team pages. Each sub-niche should target a DISTINCT patient "
+            "framing — e.g. newly diagnosed adults, women over 50, pre-bariatric, "
+            "type 2 with insulin, gestational diabetes companions, prediabetes turn-around. "
+            "Each niche needs a clear emotional/situational hook."
+        ),
     }
     type_hint = type_hints.get(book_type, "")
 

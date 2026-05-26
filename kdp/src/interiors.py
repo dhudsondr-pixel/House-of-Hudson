@@ -477,3 +477,536 @@ def build_wordsearch_interior(
 
     c.save()
     return out_path
+
+
+# ---------------------------------------------------------------------------
+# Diabetes daily log book
+# ---------------------------------------------------------------------------
+
+# What's actually in this book. Used by metadata.py to write accurate descriptions.
+DIABETES_LOG_CONTENTS = """100-page diabetes daily log book with the following structure:
+
+FRONT MATTER (8 pages):
+- Title page
+- "This logbook belongs to" page with emergency contact lines
+- Starting baseline page (initial A1C, weight, BP, diagnosis date, current medications)
+- "My 90-day goals" page with lined space for personal goals
+- "My care team" page with template lines for GP, endocrinologist, dietitian, pharmacist names + phone numbers
+- "How to use this book" instructions page
+
+DAILY LOG PAGES (90 pages, one per day):
+Each page contains:
+- Date and day-of-week field at top
+- Blood glucose table: 5 rows (Fasting, Breakfast, Lunch, Dinner, Bedtime) x 4 columns (Time, Pre-meal, Post-meal 2hr, Notes). Pre/post fields are blank for the buyer to write mmol/L or mg/dL readings.
+- Carbs by meal row: Breakfast / Lunch / Dinner / Snacks / Total
+- Medications row: 4 checkboxes (Morning / Noon / Evening / Bedtime) + insulin units field + notes
+- Activity row: Type + Duration in minutes
+- Other metrics row: Water (cups), Sleep (hours), Mood (1-10)
+- "How I felt today" notes section (4 lined rows)
+
+BACK MATTER (2 pages):
+- A1C trend log (table with date / A1C / weight / notes columns for periodic readings)
+- Notes / questions page (lined)
+
+Does NOT contain: diagnostic flowcharts, treatment recommendations, dose calculators,
+food databases, or any specific medical advice. It is a TRACKING tool for the buyer
+to fill in their own readings, to share with their care team."""
+
+
+def _draw_checkbox(c: canvas.Canvas, x: float, y: float, size: float = 9) -> None:
+    """Empty square checkbox at (x,y)."""
+    c.setStrokeColor(black)
+    c.setLineWidth(0.6)
+    c.rect(x, y, size, size, fill=0, stroke=1)
+
+
+def _draw_field_underline(c: canvas.Canvas, x: float, y: float, width: float) -> None:
+    c.setStrokeColor(Color(0.65, 0.65, 0.65))
+    c.setLineWidth(0.4)
+    c.line(x, y, x + width, y)
+
+
+def _draw_section_label(c: canvas.Canvas, label: str, x: float, y: float, size: int = 8) -> None:
+    c.setFont("Helvetica-Bold", size)
+    c.setFillColor(Color(0.35, 0.35, 0.35))
+    c.drawString(x, y, label.upper())
+    c.setFillColor(black)
+
+
+def _draw_diabetes_daily_page(c: canvas.Canvas, trim: str, page_num: int, day_num: int) -> None:
+    """Render one daily log page. Designed for 6x9 trim."""
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    content_w = x1 - x0
+    cur_y = y1
+
+    # ===== Header: DAY N + DATE/WEEKDAY =====
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 14, f"DAY {day_num:03d}")
+    # Date and weekday on right
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.45, 0.45, 0.45))
+    c.drawRightString(x1, cur_y - 14, "Date: __________   Weekday: ____")
+    cur_y -= 26
+
+    # Thin divider under header.
+    c.setStrokeColor(Color(0.7, 0.7, 0.7))
+    c.setLineWidth(0.5)
+    c.line(x0, cur_y, x1, cur_y)
+    cur_y -= 14
+
+    # ===== Blood glucose table =====
+    _draw_section_label(c, "Blood glucose (mmol/L or mg/dL)", x0, cur_y - 2)
+    cur_y -= 14
+
+    # Table dimensions.
+    row_h = 16
+    rows = ["Fasting", "Breakfast", "Lunch", "Dinner", "Bedtime"]
+    n_rows = len(rows) + 1  # +1 header
+    table_h = row_h * n_rows
+    # Column widths (totals must equal content_w).
+    col_time = content_w * 0.22
+    col_pre = content_w * 0.16
+    col_post = content_w * 0.18
+    col_notes = content_w - col_time - col_pre - col_post
+    cols = [col_time, col_pre, col_post, col_notes]
+    col_x = [x0]
+    for w in cols:
+        col_x.append(col_x[-1] + w)
+
+    table_top = cur_y
+    table_bottom = cur_y - table_h
+    # Outer box.
+    c.setStrokeColor(Color(0.55, 0.55, 0.55))
+    c.setLineWidth(0.6)
+    c.rect(x0, table_bottom, content_w, table_h, fill=0, stroke=1)
+    # Horizontal lines.
+    for i in range(1, n_rows):
+        y = table_top - row_h * i
+        c.setLineWidth(0.4)
+        c.line(x0, y, x1, y)
+    # Vertical lines.
+    for cx in col_x[1:-1]:
+        c.line(cx, table_top, cx, table_bottom)
+
+    # Header row text.
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(black)
+    headers = ["Time", "Pre-meal", "Post 2hr", "Notes"]
+    for i, h in enumerate(headers):
+        c.drawString(col_x[i] + 4, table_top - row_h + 5, h)
+
+    # Time-label rows.
+    c.setFont("Helvetica", 9)
+    for i, label in enumerate(rows):
+        row_y = table_top - row_h * (i + 2) + 5
+        c.drawString(col_x[0] + 4, row_y, label)
+        # Post column for Fasting and Bedtime shows a dash (no post-meal reading).
+        if label in ("Fasting", "Bedtime"):
+            c.setFillColor(Color(0.6, 0.6, 0.6))
+            c.drawCentredString((col_x[2] + col_x[3]) / 2, row_y, "—")
+            c.setFillColor(black)
+
+    cur_y = table_bottom - 12
+
+    # ===== Carbs by meal =====
+    _draw_section_label(c, "Carbs by meal (grams)", x0, cur_y - 2)
+    cur_y -= 12
+    c.setFont("Helvetica", 9)
+    parts = [("Breakfast", 0.20), ("Lunch", 0.20), ("Dinner", 0.20), ("Snacks", 0.20), ("Total", 0.20)]
+    px = x0
+    for name, frac in parts:
+        c.drawString(px, cur_y, f"{name}:")
+        underline_x = px + c.stringWidth(f"{name}:", "Helvetica", 9) + 4
+        underline_w = content_w * frac - (underline_x - px) - 6
+        _draw_field_underline(c, underline_x, cur_y - 2, underline_w)
+        px += content_w * frac
+    cur_y -= 14
+
+    # ===== Medications =====
+    _draw_section_label(c, "Medications taken", x0, cur_y - 2)
+    cur_y -= 14
+    c.setFont("Helvetica", 9)
+    boxes = ["Morning", "Noon", "Evening", "Bedtime"]
+    box_x = x0
+    for label in boxes:
+        _draw_checkbox(c, box_x, cur_y - 2, size=9)
+        c.drawString(box_x + 13, cur_y, label)
+        box_x += c.stringWidth(label, "Helvetica", 9) + 30
+    cur_y -= 14
+    # Insulin units + notes line.
+    c.drawString(x0, cur_y, "Insulin units:")
+    iw_x = x0 + c.stringWidth("Insulin units:", "Helvetica", 9) + 4
+    _draw_field_underline(c, iw_x, cur_y - 2, 50)
+    c.drawString(iw_x + 60, cur_y, "Notes:")
+    nx = iw_x + 60 + c.stringWidth("Notes:", "Helvetica", 9) + 4
+    _draw_field_underline(c, nx, cur_y - 2, x1 - nx)
+    cur_y -= 16
+
+    # ===== Activity =====
+    _draw_section_label(c, "Activity", x0, cur_y - 2)
+    cur_y -= 12
+    c.setFont("Helvetica", 9)
+    c.drawString(x0, cur_y, "Type:")
+    type_x = x0 + c.stringWidth("Type:", "Helvetica", 9) + 4
+    type_w = content_w * 0.5 - (type_x - x0)
+    _draw_field_underline(c, type_x, cur_y - 2, type_w)
+    dur_label_x = x0 + content_w * 0.55
+    c.drawString(dur_label_x, cur_y, "Duration (min):")
+    dur_field_x = dur_label_x + c.stringWidth("Duration (min):", "Helvetica", 9) + 4
+    _draw_field_underline(c, dur_field_x, cur_y - 2, x1 - dur_field_x)
+    cur_y -= 14
+
+    # ===== Other metrics =====
+    _draw_section_label(c, "Other", x0, cur_y - 2)
+    cur_y -= 12
+    c.setFont("Helvetica", 9)
+    others = [("Water (cups):", 0.30), ("Sleep (hrs):", 0.30), ("Mood (1-10):", 0.40)]
+    px = x0
+    for name, frac in others:
+        c.drawString(px, cur_y, name)
+        lx = px + c.stringWidth(name, "Helvetica", 9) + 4
+        lw = content_w * frac - (lx - px) - 8
+        _draw_field_underline(c, lx, cur_y - 2, lw)
+        px += content_w * frac
+    cur_y -= 16
+
+    # ===== Notes =====
+    _draw_section_label(c, "How I felt today", x0, cur_y - 2)
+    cur_y -= 12
+    c.setStrokeColor(Color(0.7, 0.7, 0.7))
+    c.setLineWidth(0.35)
+    # Draw a few lined writing rows.
+    while cur_y > y0 + 12:
+        c.line(x0, cur_y, x1, cur_y)
+        cur_y -= 18
+
+
+def _draw_belongs_to_page_diabetes(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 22)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 26, "This logbook belongs to")
+    cur_y -= 50
+
+    fields = [
+        ("Name", 0.85),
+        ("Diagnosed", 0.45),
+        ("Date started this logbook", 0.45),
+        ("Emergency contact (name)", 0.85),
+        ("Emergency contact (phone)", 0.55),
+    ]
+    c.setFont("Helvetica", 11)
+    for label, frac in fields:
+        c.drawString(x0, cur_y, f"{label}:")
+        lx = x0 + c.stringWidth(f"{label}:", "Helvetica", 11) + 6
+        lw = (x1 - x0) * frac - (lx - x0)
+        _draw_field_underline(c, lx, cur_y - 3, lw)
+        cur_y -= 26
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_baseline_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 24, "My starting baseline")
+    cur_y -= 36
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.4, 0.4, 0.4))
+    c.drawString(x0, cur_y, "Record these the day you start the logbook. Update at each follow-up.")
+    c.setFillColor(black)
+    cur_y -= 26
+
+    c.setFont("Helvetica", 11)
+    items = [
+        "Date diagnosed:",
+        "Most recent A1C (%) and date:",
+        "Fasting glucose today:",
+        "Weight (kg or lb):",
+        "Blood pressure:",
+        "Current medications (one per line):",
+        "  ",
+        "  ",
+        "  ",
+        "Other conditions to know about:",
+        "  ",
+        "Allergies:",
+        "  ",
+        "Doctor or clinic I see for diabetes:",
+    ]
+    for label in items:
+        c.drawString(x0, cur_y, label)
+        lx = x0 + c.stringWidth(label, "Helvetica", 11) + 6
+        _draw_field_underline(c, lx, cur_y - 3, x1 - lx)
+        cur_y -= 22
+        if cur_y < y0 + 20:
+            break
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_goals_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 24, "My 90-day goals")
+    cur_y -= 36
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.4, 0.4, 0.4))
+    intro = (
+        "Set 2-4 specific, doable goals for the next three months. Examples: "
+        "'A1C below 7.0', 'Walk 20 minutes after dinner', 'Carbs under 60g per meal'."
+    )
+    for line in textwrap.wrap(intro, width=72):
+        c.drawString(x0, cur_y, line)
+        cur_y -= 13
+    c.setFillColor(black)
+    cur_y -= 14
+
+    # 4 numbered goal blocks.
+    c.setFont("Helvetica", 11)
+    for i in range(1, 5):
+        c.drawString(x0, cur_y, f"Goal {i}:")
+        lx = x0 + c.stringWidth(f"Goal {i}:", "Helvetica", 11) + 6
+        _draw_field_underline(c, lx, cur_y - 3, x1 - lx)
+        cur_y -= 18
+        # 2 extra lined rows for notes/why.
+        for _ in range(2):
+            _draw_field_underline(c, x0, cur_y - 3, x1 - x0)
+            cur_y -= 18
+        cur_y -= 6
+        if cur_y < y0 + 20:
+            break
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_care_team_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 24, "My care team")
+    cur_y -= 36
+
+    roles = [
+        "General practitioner / family doctor",
+        "Diabetes specialist or endocrinologist",
+        "Diabetes nurse educator",
+        "Dietitian",
+        "Pharmacist",
+        "Eye care (optometrist / ophthalmologist)",
+        "Podiatrist",
+        "Other:",
+    ]
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(x0, cur_y, "Role")
+    c.drawString(x0 + (x1 - x0) * 0.45, cur_y, "Name")
+    c.drawString(x0 + (x1 - x0) * 0.78, cur_y, "Phone")
+    cur_y -= 16
+
+    c.setFont("Helvetica", 10)
+    for role in roles:
+        c.drawString(x0, cur_y, role)
+        _draw_field_underline(c, x0 + (x1 - x0) * 0.45, cur_y - 3, (x1 - x0) * 0.30)
+        _draw_field_underline(c, x0 + (x1 - x0) * 0.78, cur_y - 3, (x1 - x0) * 0.22)
+        cur_y -= 26
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_how_to_use_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(x0, cur_y - 24, "How to use this book")
+    cur_y -= 38
+
+    c.setFont("Helvetica", 11)
+    sections = [
+        ("One page per day.",
+         "Each daily page has space for your blood glucose readings, carbs at each meal, "
+         "medications taken, activity, sleep, and mood. Fill it in as you go through the day."),
+        ("Use the units you and your doctor use.",
+         "The book leaves space for either mmol/L or mg/dL. Pick one and stick with it."),
+        ("Be honest with the numbers.",
+         "The pattern over weeks matters more than any single reading. Days you 'forgot' "
+         "to log are fine — leave them blank and pick up tomorrow."),
+        ("Bring it to your appointments.",
+         "Your doctor, nurse, or dietitian can see in seconds what your numbers look like "
+         "across the week. That's more useful than a meter download."),
+        ("Use the back A1C log for the long view.",
+         "Every time you get a new A1C result, write it in the table at the back of the book."),
+        ("Not medical advice.",
+         "This logbook is a tool for you to record and share your own readings. "
+         "Any decisions about medication, diet, or activity belong with your healthcare team."),
+    ]
+    for heading, body in sections:
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(x0, cur_y, heading)
+        cur_y -= 14
+        c.setFont("Helvetica", 10)
+        for line in textwrap.wrap(body, width=78):
+            c.drawString(x0, cur_y, line)
+            cur_y -= 12
+        cur_y -= 6
+        if cur_y < y0 + 20:
+            break
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_a1c_log_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(x0, cur_y - 22, "A1C and clinical results log")
+    cur_y -= 32
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.4, 0.4, 0.4))
+    c.drawString(x0, cur_y, "Update each time you get new lab results. Brings the long view into focus.")
+    c.setFillColor(black)
+    cur_y -= 18
+
+    # Table: Date | A1C (%) | Fasting | Weight | BP | Notes
+    headers = ["Date", "A1C %", "Fasting", "Weight", "BP", "Notes"]
+    fracs   = [0.13,   0.10,   0.13,      0.13,    0.14, 0.37]
+    content_w = x1 - x0
+    col_x = [x0]
+    for f in fracs:
+        col_x.append(col_x[-1] + content_w * f)
+
+    row_h = 22
+    n_rows = 14  # 1 header + 13 data
+    table_top = cur_y
+    table_h = row_h * n_rows
+    table_bottom = cur_y - table_h
+    c.setStrokeColor(Color(0.55, 0.55, 0.55))
+    c.setLineWidth(0.5)
+    c.rect(x0, table_bottom, content_w, table_h, fill=0, stroke=1)
+    for i in range(1, n_rows):
+        y = table_top - row_h * i
+        c.setLineWidth(0.3)
+        c.line(x0, y, x1, y)
+    for cx in col_x[1:-1]:
+        c.line(cx, table_top, cx, table_bottom)
+
+    c.setFont("Helvetica-Bold", 9)
+    for i, h in enumerate(headers):
+        c.drawString(col_x[i] + 4, table_top - row_h + 6, h)
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_notes_page(c: canvas.Canvas, trim: str, page_num: int, heading: str = "Notes & questions") -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(x0, y1 - 18, heading)
+    c.setStrokeColor(Color(0.7, 0.7, 0.7))
+    c.setLineWidth(0.35)
+    line_y = y1 - 44
+    while line_y > y0 + 12:
+        c.line(x0, line_y, x1, line_y)
+        line_y -= 22
+    _draw_page_number(c, trim, page_num)
+
+
+def build_diabetes_log_interior(
+    out_path: Path,
+    trim: str,
+    page_count: int,
+    title: str,
+    subtitle: str,
+    author: str,
+) -> Path:
+    """Build a clinical-grade 90-day diabetes daily log book.
+
+    Page layout (for page_count=100):
+        1  Title page
+        2  blank verso
+        3  Belongs to + emergency contacts
+        4  blank
+        5  Starting baseline (A1C, weight, BP, meds, diagnosis date)
+        6  blank
+        7  90-day goals
+        8  blank
+        9  Care team
+        10 How to use this book
+        11-100  Daily log pages (one per day; 90 if page_count=100)
+        Last 2  A1C log + notes page
+    """
+    tw, th = TRIM_SIZES[trim]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    c = canvas.Canvas(str(out_path), pagesize=(tw * 72, th * 72))
+
+    page = 1
+    # Title page.
+    _draw_title_page(c, trim, title, subtitle, author)
+    c.showPage(); page += 1
+    # Verso.
+    c.showPage(); page += 1
+
+    # Belongs to.
+    _draw_belongs_to_page_diabetes(c, trim, page)
+    c.showPage(); page += 1
+    c.showPage(); page += 1  # blank
+
+    # Baseline.
+    _draw_baseline_page(c, trim, page)
+    c.showPage(); page += 1
+    c.showPage(); page += 1
+
+    # Goals.
+    _draw_goals_page(c, trim, page)
+    c.showPage(); page += 1
+    c.showPage(); page += 1
+
+    # Care team.
+    _draw_care_team_page(c, trim, page)
+    c.showPage(); page += 1
+
+    # How to use.
+    _draw_how_to_use_page(c, trim, page)
+    c.showPage(); page += 1
+
+    # Reserve last 2 pages for A1C log + notes.
+    end_reserve = 2
+    last_daily_page = page_count - end_reserve
+
+    # Daily log pages.
+    day = 1
+    while page <= last_daily_page:
+        _draw_diabetes_daily_page(c, trim, page, day_num=day)
+        _draw_page_number(c, trim, page)
+        c.showPage(); page += 1
+        day += 1
+
+    # Back matter.
+    if page <= page_count:
+        _draw_a1c_log_page(c, trim, page)
+        c.showPage(); page += 1
+    if page <= page_count:
+        _draw_notes_page(c, trim, page, heading="Notes & questions for my care team")
+        c.showPage(); page += 1
+
+    # Pad if short.
+    while page <= page_count:
+        _draw_page_number(c, trim, page)
+        c.showPage(); page += 1
+
+    c.save()
+    return out_path

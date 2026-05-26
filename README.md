@@ -1,3 +1,12 @@
+# House of Hudson — Utilities
+
+Two unrelated tools live in this repo:
+
+1. [WhatsApp Group Message Scheduler](#whatsapp-group-message-scheduler)
+2. [3D Print Optimizer](#3d-print-optimizer)
+
+---
+
 # WhatsApp Group Message Scheduler
 
 Schedules a WhatsApp message to a group for tomorrow morning. Uses
@@ -45,3 +54,64 @@ QR code you scanned with WhatsApp on your phone.
 If you'd rather not run a laptop overnight, use **MacroDroid** or
 **Tasker** on the S26: create a task that fires at the target time, opens
 WhatsApp with the group, and uses the Accessibility service to tap Send.
+
+---
+
+# 3D Print Optimizer
+
+Upload an STL / 3MF / OBJ / PLY and get:
+
+- The **best print orientation** (rotation matrix + how the model should sit on the bed)
+- **Scored alternative orientations** so you can override the pick
+- A **recommended slicer settings** profile (layer height, walls, infill, speed, supports, brim)
+- A **downloadable oriented STL** ready to drop into PrusaSlicer / Cura / OrcaSlicer
+
+## How it works
+
+The orientation algorithm is a simplified
+[Tweaker-3](https://github.com/ChristophSchranz/Tweaker-3):
+for each candidate "down" direction (six axis directions plus the dominant
+face normals of the mesh), it rotates the model, then scores it on:
+
+- **Bed contact area** (more is better — adhesion, less risk of tipping)
+- **Overhang area** (less is better — supports cost time + waste filament)
+- **Z-height** (shorter is better — print time scales with layer count)
+
+Settings come from heuristics on bounding box, volume, smallest dimension,
+and the overhang fraction of the chosen orientation. Honest caveat: the
+only way to know *true* print time is to actually slice — this tool gets
+you to the slicer faster with sane defaults already picked.
+
+## Run
+
+```bash
+pip install -r requirements.txt
+python app.py
+# open http://localhost:8000
+```
+
+Or with uvicorn directly:
+
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+## Use as a library
+
+```python
+import trimesh
+from print_optimizer import analyze
+
+mesh = trimesh.load("my_model.stl", force="mesh")
+report = analyze(mesh)
+print(report["best_orientation"])
+print(report["recommended_settings"])
+oriented = report["_oriented_mesh"]
+oriented.export("my_model_oriented.stl")
+```
+
+## Tests
+
+```bash
+python -m pytest -q
+```

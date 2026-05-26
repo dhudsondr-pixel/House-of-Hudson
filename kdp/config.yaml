@@ -5,40 +5,47 @@
 # No code knowledge required — just change values inside the quotes.
 # =============================================================================
 
-# Broad theme. Examples: "self-care for new moms", "fitness for runners over 50",
-# "productivity for entrepreneurs", "mindfulness for teachers".
-# Keep it SPECIFIC — narrower themes sell better on KDP than broad ones.
-theme: "self-care and mindfulness for busy professionals"
+# Broad theme. Drives the niche brainstorm and listing copy. Be SPECIFIC.
+theme: "daily tracking tools for adults newly diagnosed with type 2 diabetes — blood glucose logs, meal & carb tracking, medication adherence, A1C monitoring, exercise + sleep correlation"
 
 # Which book formats to generate. Pick 1+. Each format becomes one or more books.
 # Options: lined, prompt_journal, tracker, wordsearch
+# For medical/tracker niches, "tracker" is the workhorse format.
+# "prompt_journal" works well for mental-health-adjacent diabetes content
+# (e.g., emotional reflection on a chronic diagnosis).
+# "lined" works as a "questions for your doctor / appointment notes" book.
 book_types:
-  - prompt_journal
   - tracker
+  - tracker          # generate two trackers per run (different sub-angles)
   - lined
 
-# How many books per book_type per run. Start with 1 to test, then ramp.
+# How many books per book_type per run. Start at 1; the line above generates
+# 2 trackers + 1 lined per run because we listed "tracker" twice.
 books_per_type: 1
 
-# Trim size. "6x9" is the dominant low-content size and what KDP defaults to.
+# Trim size. "6x9" is portable, fits in a bag, dominant on Amazon.
+# "8.5x11" works better if the tracker grid needs more columns (e.g., 31-day
+# views) — consider switching to 8.5x11 for symptom-heavy trackers.
 # Options: "6x9", "5x8", "8.5x11", "7x10"
 trim: "6x9"
 
-# Paper. "white" is cheaper to print (higher royalty). "cream" feels nicer.
-# Options: "white", "cream"
+# Paper. "white" is cheaper to print (higher royalty). "cream" feels nicer
+# for journals; for medical trackers "white" is more appropriate.
 paper: "white"
 
-# Interior page count. KDP minimum is 24, maximum 828. Sweet spot is 110-150.
-# Higher page count = higher print cost = lower royalty per sale.
-page_count: 120
+# Interior page count. 90-120 pages is right for a 3-month tracker.
+# 150-180 for a 6-month tracker. Higher count = higher print cost.
+page_count: 100
 
-# Pen name to use as the author. Strongly recommended to use a brand name, NOT
-# your real name (low-content publishers usually run pen-name "studios").
-author_name: "Hudson House Press"
+# Author byline that appears on the title page. KDP listing also has a
+# separate "Publisher" field — set that to "Hudson Health Press" when you
+# upload each book on KDP's website.
+author_name: "Dr. D. Hudson"
 
-# List price (USD). KDP recommends $6.99-9.99 for low-content paperbacks.
-# Higher = more royalty per sale but fewer sales. $7.99 is a safe default.
-list_price: 7.99
+# List price (USD). Medical tracker books support a higher price than
+# generic journals because buyers (patients + caregivers) value perceived
+# clinical authority. $8.99-12.99 is the right band.
+list_price: 9.99
 
 # Avoid regenerating niches we've already done.
 avoid_repeats: true

@@ -1,0 +1,44 @@
+# =============================================================================
+# House of Hudson — KDP Auto-Publishing
+# =============================================================================
+# Edit this file to control what books get generated.
+# No code knowledge required — just change values inside the quotes.
+# =============================================================================
+
+# Broad theme. Examples: "self-care for new moms", "fitness for runners over 50",
+# "productivity for entrepreneurs", "mindfulness for teachers".
+# Keep it SPECIFIC — narrower themes sell better on KDP than broad ones.
+theme: "self-care and mindfulness for busy professionals"
+
+# Which book formats to generate. Pick 1+. Each format becomes one or more books.
+# Options: lined, prompt_journal, tracker, wordsearch
+book_types:
+  - prompt_journal
+  - tracker
+  - lined
+
+# How many books per book_type per run. Start with 1 to test, then ramp.
+books_per_type: 1
+
+# Trim size. "6x9" is the dominant low-content size and what KDP defaults to.
+# Options: "6x9", "5x8", "8.5x11", "7x10"
+trim: "6x9"
+
+# Paper. "white" is cheaper to print (higher royalty). "cream" feels nicer.
+# Options: "white", "cream"
+paper: "white"
+
+# Interior page count. KDP minimum is 24, maximum 828. Sweet spot is 110-150.
+# Higher page count = higher print cost = lower royalty per sale.
+page_count: 120
+
+# Pen name to use as the author. Strongly recommended to use a brand name, NOT
+# your real name (low-content publishers usually run pen-name "studios").
+author_name: "Hudson House Press"
+
+# List price (USD). KDP recommends $6.99-9.99 for low-content paperbacks.
+# Higher = more royalty per sale but fewer sales. $7.99 is a safe default.
+list_price: 7.99
+
+# Avoid regenerating niches we've already done.
+avoid_repeats: true

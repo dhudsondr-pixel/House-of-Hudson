@@ -42,6 +42,19 @@ def brainstorm(theme: str, book_type: str, count: int, avoid: List[str]) -> List
             "type 2 with insulin, gestational diabetes companions, prediabetes turn-around. "
             "Each niche needs a clear emotional/situational hook."
         ),
+        "adhd_planner": (
+            "A 90-day adult ADHD daily planner. One page per day: top-3 priorities "
+            "(not long todo lists), stimulant + other meds tracking, 8 loose time "
+            "blocks, morning/midday/evening focus & energy ratings, distraction-park "
+            "lines (for capturing intrusive thoughts during deep work), end-of-day "
+            "win + lesson + carry-forward. Plus baseline ADHD profile, 90-day goals, "
+            "care team, medication trial log. Each sub-niche should target a "
+            "DISTINCT adult-ADHD framing — e.g. newly diagnosed adults, women with "
+            "late-diagnosed ADHD, university students, parents of ADHD kids who "
+            "are themselves ADHD, ADHD + autism, ADHD with anxiety, professionals "
+            "navigating workplace, ADHD medication titration journal. Each needs a "
+            "clear identity/situational hook."
+        ),
     }
     type_hint = type_hints.get(book_type, "")
 

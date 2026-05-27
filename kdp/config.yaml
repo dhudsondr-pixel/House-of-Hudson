@@ -6,20 +6,14 @@
 # =============================================================================
 
 # Broad theme. Drives the niche brainstorm and listing copy. Be SPECIFIC.
-theme: "daily tracking tools for adults newly diagnosed with type 2 diabetes — blood glucose logs, meal & carb tracking, medication adherence, A1C monitoring, exercise + sleep correlation"
+theme: "adult ADHD daily planning and symptom management for newly-diagnosed and undiagnosed-for-decades adults — executive function support, medication tracking, hyperfocus harnessing, real-world life management"
 
 # Which book formats to generate. Pick 1+. Each format becomes one or more books.
-# Options: lined, prompt_journal, tracker, wordsearch, diabetes_log
-#
-# diabetes_log is a clinical-grade 90-day daily log book: one page per day
-# with glucose/carbs/medication/activity/mood fields, plus baseline + goals
-# + care-team + A1C trend pages. Use this for the diabetes niche.
-# Three diabetes_log entries below = three diabetes books with different
-# sub-niche framings (newly diagnosed, prediabetes, type 2 over 50, etc.).
+# Options: lined, prompt_journal, tracker, wordsearch, diabetes_log, adhd_planner
 book_types:
-  - diabetes_log
-  - diabetes_log
-  - diabetes_log
+  - adhd_planner
+  - adhd_planner
+  - adhd_planner
 
 # How many books per book_type per run. Start at 1; the line above generates
 # 2 trackers + 1 lined per run because we listed "tracker" twice.

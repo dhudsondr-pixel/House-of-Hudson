@@ -27,7 +27,9 @@ sys.path.insert(0, str(KDP_ROOT))
 from src import wordsearch as ws_gen
 from src.covers import build_cover
 from src.interiors import (
+    ADHD_PLANNER_CONTENTS,
     DIABETES_LOG_CONTENTS,
+    build_adhd_planner_interior,
     build_diabetes_log_interior,
     build_lined_interior,
     build_prompt_journal_interior,
@@ -179,6 +181,7 @@ def _generate_one_book(
     # template description so the metadata writer doesn't oversell.
     TEMPLATE_CONTENTS = {
         "diabetes_log": DIABETES_LOG_CONTENTS,
+        "adhd_planner": ADHD_PLANNER_CONTENTS,
     }
     template_contents = TEMPLATE_CONTENTS.get(book_type)
 
@@ -237,6 +240,15 @@ def _generate_one_book(
         )
     elif book_type == "diabetes_log":
         build_diabetes_log_interior(
+            out_path=interior_path,
+            trim=trim,
+            page_count=page_count,
+            title=meta.title,
+            subtitle=meta.subtitle,
+            author=author,
+        )
+    elif book_type == "adhd_planner":
+        build_adhd_planner_interior(
             out_path=interior_path,
             trim=trim,
             page_count=page_count,

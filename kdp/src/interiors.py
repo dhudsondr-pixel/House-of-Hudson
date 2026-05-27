@@ -1010,3 +1010,418 @@ def build_diabetes_log_interior(
 
     c.save()
     return out_path
+
+
+# ---------------------------------------------------------------------------
+# Adult ADHD daily planner
+# ---------------------------------------------------------------------------
+
+ADHD_PLANNER_CONTENTS = """100-page adult ADHD daily planner with the following structure:
+
+FRONT MATTER (8 pages):
+- Title page
+- "This planner belongs to" page with emergency contact lines
+- "My ADHD profile" baseline page (diagnosis date, comorbidities, current
+  stimulant + non-stimulant medications with doses, what I'm working on)
+- "My 90-day goals" page with 4 numbered goal blocks + notes lines
+- "My care team" page with role/name/phone rows (psychiatrist, therapist,
+  ADHD coach, GP, prescribing pharmacist)
+- "How to use this planner" page explaining the daily structure and the
+  underlying principles (top-3 priorities, distraction parking, daily wins)
+
+DAILY PAGES (88 pages, one per day):
+Each page is intentionally designed for executive-function support, not
+generic productivity planning. Each contains:
+- DAY header with date and weekday fields
+- TOP 3 PRIORITIES (not a long todo list — cap at three)
+- MEDS row: stimulant checkbox + time + dose field; non-stimulant notes
+- TIME BLOCKS: 8 realistic-sized chunks (morning through evening) with
+  one-line space each (not 15-minute granularity that ADHD brains can't
+  sustain)
+- FOCUS / ENERGY row: morning, midday, evening rating (1-5 scale)
+- BODY row: movement minutes + last night sleep hours
+- DISTRACTION PARK: 4 lined slots to capture intrusive thoughts/ideas
+  during deep work, so they can be addressed later without breaking flow
+- END OF DAY: today's win, one lesson, what to carry to tomorrow
+
+BACK MATTER (4 pages):
+- Medication trial log (table: med name, dose, start date, effects,
+  side effects, stopped date)
+- 90-day reflection page (lined: what worked, what didn't, next focus)
+- Notes pages (2)
+
+Does NOT contain: dose calculators, treatment recommendations, diagnostic
+criteria, or specific clinical advice. It is a PERSONAL planning and
+tracking tool. The disclaimer page makes this explicit."""
+
+
+def _draw_adhd_belongs_to_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 22)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 26, "This planner belongs to")
+    cur_y -= 50
+
+    fields = [
+        ("Name", 0.85),
+        ("Diagnosed", 0.45),
+        ("Date started this planner", 0.45),
+        ("Emergency contact (name)", 0.85),
+        ("Emergency contact (phone)", 0.55),
+    ]
+    c.setFont("Helvetica", 11)
+    for label, frac in fields:
+        c.drawString(x0, cur_y, f"{label}:")
+        lx = x0 + c.stringWidth(f"{label}:", "Helvetica", 11) + 6
+        lw = (x1 - x0) * frac - (lx - x0)
+        _draw_field_underline(c, lx, cur_y - 3, lw)
+        cur_y -= 26
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_adhd_profile_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 24, "My ADHD profile")
+    cur_y -= 36
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.4, 0.4, 0.4))
+    c.drawString(x0, cur_y, "A quick snapshot. Update at appointments or when meds change.")
+    c.setFillColor(black)
+    cur_y -= 24
+
+    c.setFont("Helvetica", 11)
+    items = [
+        "Date diagnosed:",
+        "Diagnosing clinician:",
+        "Presentation (inattentive / hyperactive / combined):",
+        "Other diagnoses (anxiety, depression, ASD, etc.):",
+        "Current stimulant medication and dose:",
+        "Current non-stimulant medication and dose:",
+        "Other medications:",
+        "What I'm working on right now (one sentence):",
+        "  ",
+        "What helps me most when I'm overwhelmed:",
+        "  ",
+        "My biggest current struggle:",
+        "  ",
+    ]
+    for label in items:
+        c.drawString(x0, cur_y, label)
+        lx = x0 + c.stringWidth(label, "Helvetica", 11) + 6
+        _draw_field_underline(c, lx, cur_y - 3, x1 - lx)
+        cur_y -= 22
+        if cur_y < y0 + 20:
+            break
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_adhd_care_team_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 24, "My care team")
+    cur_y -= 36
+
+    roles = [
+        "Psychiatrist / prescribing clinician",
+        "Therapist / psychologist",
+        "ADHD coach",
+        "General practitioner / family doctor",
+        "Pharmacist",
+        "Other (workplace / education support):",
+        "Other:",
+    ]
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(x0, cur_y, "Role")
+    c.drawString(x0 + (x1 - x0) * 0.45, cur_y, "Name")
+    c.drawString(x0 + (x1 - x0) * 0.78, cur_y, "Phone")
+    cur_y -= 16
+
+    c.setFont("Helvetica", 10)
+    for role in roles:
+        c.drawString(x0, cur_y, role)
+        _draw_field_underline(c, x0 + (x1 - x0) * 0.45, cur_y - 3, (x1 - x0) * 0.30)
+        _draw_field_underline(c, x0 + (x1 - x0) * 0.78, cur_y - 3, (x1 - x0) * 0.22)
+        cur_y -= 26
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_adhd_how_to_use_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(x0, cur_y - 24, "How to use this planner")
+    cur_y -= 38
+
+    sections = [
+        ("Top 3 — and only 3.",
+         "Long todo lists overwhelm an ADHD brain and stop being motivating "
+         "after about 15 minutes. Pick three things. If they're done, you "
+         "had a good day. Tomorrow gets its own three."),
+        ("Distraction park is your second brain.",
+         "When a thought interrupts you mid-task ('I should email Joe', "
+         "'we need milk', 'what if I rewrite the project plan'), write it "
+         "in the park box and go back to the task. The thought is safe; "
+         "you'll come back to it."),
+        ("Time blocks are not appointments.",
+         "These are loose containers, not commitments. A 9-10 block that "
+         "becomes 9-11 isn't failure — it's information about how long "
+         "things actually take you."),
+        ("Track meds honestly.",
+         "Forgetting your stimulant is not a moral failure; it's data. "
+         "Patterns over weeks help you and your prescriber adjust."),
+        ("End the day with a win, every day.",
+         "ADHD brains forget what they accomplished and amplify what they "
+         "didn't. The 'today's win' line fights that. The win can be tiny "
+         "(showered, replied to one email). Write it anyway."),
+        ("This is a planner, not medical advice.",
+         "Decisions about diagnosis, medication, or therapy belong with "
+         "your prescribing clinician."),
+    ]
+    c.setFont("Helvetica", 11)
+    for heading, body in sections:
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(x0, cur_y, heading)
+        cur_y -= 14
+        c.setFont("Helvetica", 10)
+        for line in textwrap.wrap(body, width=78):
+            c.drawString(x0, cur_y, line)
+            cur_y -= 12
+        cur_y -= 6
+        if cur_y < y0 + 20:
+            break
+
+    _draw_page_number(c, trim, page_num)
+
+
+def _draw_adhd_daily_page(c: canvas.Canvas, trim: str, page_num: int, day_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    content_w = x1 - x0
+    cur_y = y1
+
+    # Header: DAY N + date/weekday
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColor(black)
+    c.drawString(x0, cur_y - 14, f"DAY {day_num:03d}")
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.45, 0.45, 0.45))
+    c.drawRightString(x1, cur_y - 14, "Date: __________   Weekday: ____")
+    cur_y -= 24
+
+    c.setStrokeColor(Color(0.7, 0.7, 0.7))
+    c.setLineWidth(0.5)
+    c.line(x0, cur_y, x1, cur_y)
+    cur_y -= 14
+
+    # Top 3 priorities
+    _draw_section_label(c, "Today's 3 priorities", x0, cur_y - 2)
+    cur_y -= 14
+    c.setFont("Helvetica", 11)
+    c.setFillColor(black)
+    for n in range(1, 4):
+        c.drawString(x0, cur_y, f"{n}.")
+        _draw_field_underline(c, x0 + 16, cur_y - 3, content_w - 16)
+        cur_y -= 18
+    cur_y -= 4
+
+    # Meds
+    _draw_section_label(c, "Meds", x0, cur_y - 2)
+    cur_y -= 14
+    c.setFont("Helvetica", 10)
+    _draw_checkbox(c, x0, cur_y - 1, size=9)
+    c.drawString(x0 + 13, cur_y, "Stimulant taken")
+    time_x = x0 + 13 + c.stringWidth("Stimulant taken", "Helvetica", 10) + 16
+    c.drawString(time_x, cur_y, "Time:")
+    tfield = time_x + c.stringWidth("Time:", "Helvetica", 10) + 4
+    _draw_field_underline(c, tfield, cur_y - 2, 50)
+    dose_x = tfield + 58
+    c.drawString(dose_x, cur_y, "Dose:")
+    dfield = dose_x + c.stringWidth("Dose:", "Helvetica", 10) + 4
+    _draw_field_underline(c, dfield, cur_y - 2, x1 - dfield)
+    cur_y -= 14
+    c.drawString(x0, cur_y, "Other meds / notes:")
+    n_field = x0 + c.stringWidth("Other meds / notes:", "Helvetica", 10) + 6
+    _draw_field_underline(c, n_field, cur_y - 2, x1 - n_field)
+    cur_y -= 14
+
+    # Time blocks
+    _draw_section_label(c, "Time blocks (loose, not appointments)", x0, cur_y - 2)
+    cur_y -= 14
+    blocks = ["AM 1", "AM 2", "AM 3", "Midday", "PM 1", "PM 2", "PM 3", "Evening"]
+    c.setFont("Helvetica", 10)
+    for label in blocks:
+        c.drawString(x0, cur_y, f"{label}:")
+        lw_x = x0 + c.stringWidth(f"{label}:", "Helvetica", 10) + 6
+        _draw_field_underline(c, lw_x, cur_y - 2, x1 - lw_x)
+        cur_y -= 17
+    cur_y -= 2
+
+    # Focus / energy + body in one row
+    _draw_section_label(c, "Focus & energy (1-5)", x0, cur_y - 2)
+    cur_y -= 13
+    c.setFont("Helvetica", 10)
+    fe_items = [("Morning:", 0.20), ("Midday:", 0.20), ("Evening:", 0.20)]
+    px = x0
+    for label, frac in fe_items:
+        c.drawString(px, cur_y, label)
+        lx = px + c.stringWidth(label, "Helvetica", 10) + 4
+        lw = content_w * frac - (lx - px) - 8
+        _draw_field_underline(c, lx, cur_y - 2, lw)
+        px += content_w * frac
+    # Movement + sleep on same row
+    c.drawString(px, cur_y, "Move(min):")
+    lx = px + c.stringWidth("Move(min):", "Helvetica", 10) + 4
+    _draw_field_underline(c, lx, cur_y - 2, 36)
+    sleep_x = lx + 42
+    c.drawString(sleep_x, cur_y, "Sleep(hrs):")
+    lx2 = sleep_x + c.stringWidth("Sleep(hrs):", "Helvetica", 10) + 4
+    _draw_field_underline(c, lx2, cur_y - 2, x1 - lx2)
+    cur_y -= 16
+
+    # Distraction park
+    _draw_section_label(c, "Distraction park (write it down, come back later)", x0, cur_y - 2)
+    cur_y -= 13
+    for _ in range(4):
+        _draw_field_underline(c, x0, cur_y - 2, content_w)
+        cur_y -= 14
+    cur_y -= 2
+
+    # End of day
+    _draw_section_label(c, "End of day", x0, cur_y - 2)
+    cur_y -= 13
+    c.setFont("Helvetica", 10)
+    for label in ["Today's win:", "One lesson:", "Carry to tomorrow:"]:
+        c.drawString(x0, cur_y, label)
+        lx = x0 + c.stringWidth(label, "Helvetica", 10) + 6
+        _draw_field_underline(c, lx, cur_y - 2, x1 - lx)
+        cur_y -= 16
+
+
+def _draw_med_trial_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
+    x0, y0, x1, y1 = _content_box(trim, page_num)
+    cur_y = y1
+
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(x0, cur_y - 22, "Medication trial log")
+    cur_y -= 32
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(Color(0.4, 0.4, 0.4))
+    c.drawString(x0, cur_y, "Each row: a medication you've trialled. Bring this to your prescriber.")
+    c.setFillColor(black)
+    cur_y -= 18
+
+    headers = ["Med + dose", "Started", "Stopped", "Effects", "Side effects"]
+    fracs   = [0.26,         0.12,      0.12,      0.25,      0.25]
+    content_w = x1 - x0
+    col_x = [x0]
+    for f in fracs:
+        col_x.append(col_x[-1] + content_w * f)
+
+    row_h = 28
+    n_rows = 12
+    table_top = cur_y
+    table_h = row_h * n_rows
+    table_bottom = cur_y - table_h
+    c.setStrokeColor(Color(0.55, 0.55, 0.55))
+    c.setLineWidth(0.5)
+    c.rect(x0, table_bottom, content_w, table_h, fill=0, stroke=1)
+    for i in range(1, n_rows):
+        y = table_top - row_h * i
+        c.setLineWidth(0.3)
+        c.line(x0, y, x1, y)
+    for cx in col_x[1:-1]:
+        c.line(cx, table_top, cx, table_bottom)
+
+    c.setFont("Helvetica-Bold", 9)
+    for i, h in enumerate(headers):
+        c.drawString(col_x[i] + 4, table_top - row_h + 8, h)
+
+    _draw_page_number(c, trim, page_num)
+
+
+def build_adhd_planner_interior(
+    out_path: Path,
+    trim: str,
+    page_count: int,
+    title: str,
+    subtitle: str,
+    author: str,
+) -> Path:
+    """Build a clinical-grade 90-day adult ADHD daily planner.
+
+    For page_count=100:
+        1  Title
+        2  blank verso
+        3  Belongs to + emergency contact
+        4  My ADHD profile
+        5  My 90-day goals
+        6  My care team
+        7  How to use this planner
+        8  blank
+        9-96  Daily pages (88 days)
+        97 Medication trial log
+        98 90-day reflection (lined notes)
+        99-100  Notes pages
+    """
+    tw, th = TRIM_SIZES[trim]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    c = canvas.Canvas(str(out_path), pagesize=(tw * 72, th * 72))
+
+    page = 1
+    _draw_title_page(c, trim, title, subtitle, author)
+    c.showPage(); page += 1
+    c.showPage(); page += 1  # blank verso
+
+    _draw_adhd_belongs_to_page(c, trim, page)
+    c.showPage(); page += 1
+
+    _draw_adhd_profile_page(c, trim, page)
+    c.showPage(); page += 1
+
+    _draw_goals_page(c, trim, page)
+    c.showPage(); page += 1
+
+    _draw_adhd_care_team_page(c, trim, page)
+    c.showPage(); page += 1
+
+    _draw_adhd_how_to_use_page(c, trim, page)
+    c.showPage(); page += 1
+    c.showPage(); page += 1  # blank
+
+    # Reserve last 4 pages for back matter.
+    end_reserve = 4
+    last_daily_page = page_count - end_reserve
+
+    day = 1
+    while page <= last_daily_page:
+        _draw_adhd_daily_page(c, trim, page, day_num=day)
+        _draw_page_number(c, trim, page)
+        c.showPage(); page += 1
+        day += 1
+
+    if page <= page_count:
+        _draw_med_trial_page(c, trim, page)
+        c.showPage(); page += 1
+    if page <= page_count:
+        _draw_notes_page(c, trim, page, heading="90-day reflection")
+        c.showPage(); page += 1
+    while page <= page_count:
+        _draw_notes_page(c, trim, page, heading="Notes")
+        c.showPage(); page += 1
+
+    c.save()
+    return out_path

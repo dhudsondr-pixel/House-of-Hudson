@@ -28,7 +28,10 @@ PAGE_THICKNESS = {
 
 # Interior margins for KDP paperbacks (inches).
 # "Inside" = gutter, near the binding. "Outside" = the page edge.
-INSIDE_MARGIN = 0.75
+# KDP's stated minimums for 24-150 pages are 0.375" gutter / 0.25" outside,
+# but their auto-checker has a stricter undocumented buffer that rejects
+# files at the stated minimums. These values clear the auto-check reliably.
+INSIDE_MARGIN = 0.875
 OUTSIDE_MARGIN = 0.5
 TOP_MARGIN = 0.5
 BOTTOM_MARGIN = 0.5

@@ -38,7 +38,7 @@ def _draw_page_number(c: canvas.Canvas, trim: str, page_num: int) -> None:
     tw, th = TRIM_SIZES[trim]
     c.setFont("Helvetica", 9)
     c.setFillColor(grey)
-    c.drawCentredString(tw * 72 / 2, 0.3 * 72, str(page_num))
+    c.drawCentredString(tw * 72 / 2, 0.375 * 72, str(page_num))
     c.setFillColor(black)
 
 

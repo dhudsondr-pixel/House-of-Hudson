@@ -42,26 +42,72 @@ def _draw_page_number(c: canvas.Canvas, trim: str, page_num: int) -> None:
     c.setFillColor(black)
 
 
+def _wrap_to_width(c: canvas.Canvas, text: str, font: str, size: float, max_w: float) -> list[str]:
+    """Wrap text so each line's RENDERED width fits within max_w points.
+
+    Word-by-word using canvas.stringWidth (font-aware), unlike textwrap which
+    counts characters. Returns the wrapped lines.
+    """
+    words = text.split()
+    if not words:
+        return []
+    lines: list[str] = []
+    current = words[0]
+    for w in words[1:]:
+        trial = current + " " + w
+        if c.stringWidth(trial, font, size) <= max_w:
+            current = trial
+        else:
+            lines.append(current)
+            current = w
+    lines.append(current)
+    return lines
+
+
+def _fit_font_size(c: canvas.Canvas, text: str, font: str, start_size: float,
+                   max_w: float, min_size: float = 14) -> float:
+    """Return a font size <= start_size such that the single longest sub-line
+    (assuming text is split by whitespace into balanced lines) fits within max_w."""
+    size = start_size
+    while size >= min_size:
+        # Try to wrap and see if every line fits.
+        lines = _wrap_to_width(c, text, font, size, max_w)
+        if all(c.stringWidth(line, font, size) <= max_w for line in lines):
+            return size
+        size -= 1
+    return min_size
+
+
 def _draw_title_page(c: canvas.Canvas, trim: str, title: str, subtitle: str, author: str) -> None:
     tw, th = TRIM_SIZES[trim]
     cx = tw * 72 / 2
 
-    # Title.
-    c.setFont("Helvetica-Bold", 32)
+    # Title page is page 1 (right-hand). Safe content width is the same as any
+    # other right-hand page: trim - INSIDE_MARGIN - OUTSIDE_MARGIN. We use a
+    # symmetric safe width (twice the smaller margin from center) so the
+    # centered string can't poke into either margin.
+    safe_w = (tw - 2 * max(INSIDE_MARGIN, OUTSIDE_MARGIN)) * 72
+
     c.setFillColor(black)
-    title_lines = textwrap.fill(title, width=22).splitlines()
-    y = th * 72 * 0.6 + (len(title_lines) - 1) * 18
+    title_size = _fit_font_size(c, title, "Helvetica-Bold", start_size=32,
+                                max_w=safe_w, min_size=18)
+    c.setFont("Helvetica-Bold", title_size)
+    title_lines = _wrap_to_width(c, title, "Helvetica-Bold", title_size, safe_w)
+    line_spacing = title_size * 1.18
+    y = th * 72 * 0.6 + (len(title_lines) - 1) * line_spacing / 2
     for line in title_lines:
         c.drawCentredString(cx, y, line)
-        y -= 38
+        y -= line_spacing
 
     if subtitle:
-        c.setFont("Helvetica", 14)
-        sub_lines = textwrap.fill(subtitle, width=44).splitlines()
+        sub_size = _fit_font_size(c, subtitle, "Helvetica", start_size=14,
+                                  max_w=safe_w, min_size=10)
+        c.setFont("Helvetica", sub_size)
+        sub_lines = _wrap_to_width(c, subtitle, "Helvetica", sub_size, safe_w)
         y -= 10
         for line in sub_lines:
             c.drawCentredString(cx, y, line)
-            y -= 18
+            y -= sub_size * 1.3
 
     if author:
         c.setFont("Helvetica-Oblique", 14)
@@ -180,8 +226,8 @@ def build_prompt_journal_interior(
         c.setFillColor(black)
 
         # Prompt text box.
-        prompt_lines = textwrap.wrap(prompts[pi], width=46)
         c.setFont("Helvetica-Bold", 14)
+        prompt_lines = _wrap_to_width(c, prompts[pi], "Helvetica-Bold", 14, x1 - x0)
         y = y1 - 28
         for line in prompt_lines[:4]:  # cap to 4 lines
             c.drawString(x0, y, line)
@@ -344,7 +390,7 @@ def build_wordsearch_interior(
         "Circle each word as you find it. Solutions are at the back of the book."
     )
     y = y1 - 50
-    for line in textwrap.wrap(intro, width=58):
+    for line in _wrap_to_width(c, intro, "Helvetica", 12, x1 - x0):
         c.drawString(x0, y, line)
         y -= 16
     _draw_page_number(c, trim, page)
@@ -767,7 +813,7 @@ def _draw_goals_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
         "Set 2-4 specific, doable goals for the next three months. Examples: "
         "'A1C below 7.0', 'Walk 20 minutes after dinner', 'Carbs under 60g per meal'."
     )
-    for line in textwrap.wrap(intro, width=72):
+    for line in _wrap_to_width(c, intro, "Helvetica", 10, x1 - x0):
         c.drawString(x0, cur_y, line)
         cur_y -= 13
     c.setFillColor(black)
@@ -858,7 +904,7 @@ def _draw_how_to_use_page(c: canvas.Canvas, trim: str, page_num: int) -> None:
         c.drawString(x0, cur_y, heading)
         cur_y -= 14
         c.setFont("Helvetica", 10)
-        for line in textwrap.wrap(body, width=78):
+        for line in _wrap_to_width(c, body, "Helvetica", 10, x1 - x0):
             c.drawString(x0, cur_y, line)
             cur_y -= 12
         cur_y -= 6
@@ -1197,7 +1243,7 @@ def _draw_adhd_how_to_use_page(c: canvas.Canvas, trim: str, page_num: int) -> No
         c.drawString(x0, cur_y, heading)
         cur_y -= 14
         c.setFont("Helvetica", 10)
-        for line in textwrap.wrap(body, width=78):
+        for line in _wrap_to_width(c, body, "Helvetica", 10, x1 - x0):
             c.drawString(x0, cur_y, line)
             cur_y -= 12
         cur_y -= 6
@@ -1269,26 +1315,30 @@ def _draw_adhd_daily_page(c: canvas.Canvas, trim: str, page_num: int, day_num: i
         cur_y -= 17
     cur_y -= 2
 
-    # Focus / energy + body in one row
+    # Focus & energy — 3 fields on one row
     _draw_section_label(c, "Focus & energy (1-5)", x0, cur_y - 2)
     cur_y -= 13
     c.setFont("Helvetica", 10)
-    fe_items = [("Morning:", 0.20), ("Midday:", 0.20), ("Evening:", 0.20)]
-    px = x0
-    for label, frac in fe_items:
-        c.drawString(px, cur_y, label)
-        lx = px + c.stringWidth(label, "Helvetica", 10) + 4
-        lw = content_w * frac - (lx - px) - 8
+    third = content_w / 3
+    for i, label in enumerate(["Morning:", "Midday:", "Evening:"]):
+        px_ = x0 + i * third
+        c.drawString(px_, cur_y, label)
+        lx = px_ + c.stringWidth(label, "Helvetica", 10) + 4
+        lw = third - (lx - px_) - 6
         _draw_field_underline(c, lx, cur_y - 2, lw)
-        px += content_w * frac
-    # Movement + sleep on same row
-    c.drawString(px, cur_y, "Move(min):")
-    lx = px + c.stringWidth("Move(min):", "Helvetica", 10) + 4
-    _draw_field_underline(c, lx, cur_y - 2, 36)
-    sleep_x = lx + 42
-    c.drawString(sleep_x, cur_y, "Sleep(hrs):")
-    lx2 = sleep_x + c.stringWidth("Sleep(hrs):", "Helvetica", 10) + 4
-    _draw_field_underline(c, lx2, cur_y - 2, x1 - lx2)
+    cur_y -= 16
+
+    # Body — movement + sleep on its own row
+    _draw_section_label(c, "Body", x0, cur_y - 2)
+    cur_y -= 13
+    c.setFont("Helvetica", 10)
+    half = content_w / 2
+    for i, label in enumerate(["Move (min):", "Sleep (hrs):"]):
+        px_ = x0 + i * half
+        c.drawString(px_, cur_y, label)
+        lx = px_ + c.stringWidth(label, "Helvetica", 10) + 4
+        lw = half - (lx - px_) - 6
+        _draw_field_underline(c, lx, cur_y - 2, lw)
     cur_y -= 16
 
     # Distraction park

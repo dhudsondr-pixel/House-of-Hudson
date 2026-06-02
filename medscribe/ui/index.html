@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedScribe — local clinical scribe</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>MedScribe</h1>
+        <p class="tagline">Local clinical scribe · everything stays on this machine</p>
+    </header>
+
+    <main>
+        <section class="record-panel">
+            <button id="record-btn" class="record-btn">● Start recording</button>
+            <div id="timer" class="timer">00:00</div>
+            <div id="status" class="status"></div>
+        </section>
+
+        <section id="upload-panel" class="upload-panel">
+            <label class="upload-label">
+                Or upload an audio file (mp3 / wav / m4a / webm):
+                <input type="file" id="file-input" accept="audio/*">
+            </label>
+        </section>
+
+        <section id="output" class="output hidden">
+            <div class="output-tabs">
+                <button class="tab-btn active" data-tab="note">SOAP note</button>
+                <button class="tab-btn" data-tab="transcript">Transcript</button>
+            </div>
+
+            <div id="tab-note" class="tab-pane active">
+                <div class="pane-actions">
+                    <button id="copy-note">Copy note</button>
+                    <span id="note-timing" class="timing"></span>
+                </div>
+                <pre id="note-content" class="note-content"></pre>
+            </div>
+
+            <div id="tab-transcript" class="tab-pane">
+                <div class="pane-actions">
+                    <button id="copy-transcript">Copy transcript</button>
+                    <span id="transcript-timing" class="timing"></span>
+                </div>
+                <pre id="transcript-content" class="transcript-content"></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>v0.1 · audio never leaves this device · Dr. D. Hudson</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

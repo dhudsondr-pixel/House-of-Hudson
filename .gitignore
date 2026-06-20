@@ -6,3 +6,7 @@ __pycache__/
 output/
 output-wedding/
 output-bubble-letters/
+# Lithophanes are generated per-customer-photo and the STLs are large
+# (~30 MB each). Keep them out of git; only the small demo previews are
+# force-added so the gallery stays browsable on mobile.
+output-lithophanes/*.stl
